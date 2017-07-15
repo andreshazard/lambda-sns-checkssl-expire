@@ -33,9 +33,11 @@ def check_expiry():
     # this else is just while testing
         host_to_be_expired[HOST] = expiration
 
+    return host_to_be_expired
+
 def send_email_notification(host_to_be_expired):
     sns = boto3.resource("sns")
-    topic = sns.Topic("arn:aws:sns:us-east-1:527728718473:ssl-expiry-check-lambda")
+    topic = sns.Topic(SNS_TOPIC)
     topic.publish(
     Message=create_email_message(host_to_be_expired),
     MessageStructure="string"
@@ -47,25 +49,29 @@ def create_email_message(host_to_be_expired):
         message = message + host + " expires in: " + str(expire_days) + " days"  +"\n"
     return message
 
-def main(event, context):
+def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-d', '--days', help='specify expiry days to send email', type=int, default=30)
     parser.add_argument('-p', '--port', help='specify a port to connect to', type=int, default=443)
     args = parser.parse_args()
 
-    global HOST, DAYS, PORT
+    global HOST, DAYS, PORT, SNS_TOPIC
     PORT = args.port
     DAYS = args.days
     HOST = ''
+    SNS_TOPIC = "sns topic arn here"
+
+    host_to_be_expired = {}
 
     with open ("domainlist") as host_list:
         for line in host_list:
             line = line[:-1] # removes empty line added at the end
             HOST = line
             print(line)
-            check_expiry()
-    if len(HOST_TO_BE_EXPIRED) > 0:
-        send_email_notification(HOST_TO_BE_EXPIRED)
+            host_to_be_expired = check_expiry()
+
+    if len(host_to_be_expired) > 0:
+        send_email_notification(host_to_be_expired)
 
 if __name__ == "__main__":
     main()

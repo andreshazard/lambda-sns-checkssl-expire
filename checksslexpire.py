@@ -49,7 +49,7 @@ def create_email_message(host_to_be_expired):
         message = message + host + " expires in: " + str(expire_days) + " days"  +"\n"
     return message
 
-def main():
+def main(event, context):
     parser = argparse.ArgumentParser()
     parser.add_argument('-d', '--days', help='specify expiry days to send email', type=int, default=30)
     parser.add_argument('-p', '--port', help='specify a port to connect to', type=int, default=443)

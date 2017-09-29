@@ -51,7 +51,7 @@ def lambda_handler(event,context):
 
     global HOST, DAYS, SNS_TOPIC
 
-    DAYS = 200
+    DAYS = 30
     HOST = event['Records'][0]['Sns']['Message']
     SNS_TOPIC = "arn:aws:sns:us-west-2:527728718473:ssl-certification-expiry"
 

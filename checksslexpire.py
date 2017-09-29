@@ -29,9 +29,6 @@ def check_expiry():
 
     if expiration <= DAYS:
         host_to_be_expired[HOST] = expiration
-    else:
-    # this else is just while testing
-        host_to_be_expired[HOST] = expiration
 
     return host_to_be_expired
 
@@ -44,30 +41,22 @@ def send_email_notification(host_to_be_expired):
     )
 
 def create_email_message(host_to_be_expired):
-    message = "The following customers' SSL certification will expire in less than " + str(DAYS) + " days:\n"
+    message = "The following customer's SSL certification will expire soon " + "\n"
     for host, expire_days in host_to_be_expired.items():
         message = message + host + " expires in: " + str(expire_days) + " days"  +"\n"
     print(message)
     return message
 
-def main(event, context):
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-d', '--days', help='specify expiry days to send email', type=int, default=30)
-    parser.add_argument('-p', '--port', help='specify a port to connect to', type=int, default=443)
-    args = parser.parse_args()
+def lambda_handler(event,context):
 
     global HOST, DAYS, SNS_TOPIC
-    DAYS = args.days
-    HOST = ''
-    SNS_TOPIC = "sns topic arn here"
 
-    host_to_be_expired = {}
+    DAYS = 200
+    HOST = event['Records'][0]['Sns']['Message']
+    SNS_TOPIC = "arn:aws:sns:us-west-2:527728718473:ssl-certification-expiry"
 
-    with open ("domainlist") as host_list:
-        for line in host_list:
-            line = line[:-1] # removes empty line added at the end
-            HOST = line
-            host_to_be_expired = check_expiry()
+    host_to_be_expired = check_expiry()
+
 
     if len(host_to_be_expired) > 0:
         send_email_notification(host_to_be_expired)
